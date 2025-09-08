@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import Dashboard from './Dashboard';
 import Home from './Home';
 import './Home.css';
+import './Dashboard.css';
 
 // ...brands array...
 function Application() {
