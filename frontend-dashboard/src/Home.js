@@ -21,11 +21,40 @@ function Home() {
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Insert your JS logic here (from main.js)
-    // Example: console.log({ rust, severity, flooded, selectedBrand });
-    // /home/post-data   // Future: send data to backend here
+
+    // Collect form data
+    const data = {
+      brand: selectedBrand ? selectedBrand.name : '',
+      year: parseInt(e.target.year.value),
+      odometer: parseInt(e.target.odometer.value),
+      accidentzone: e.target.accidentzone.value,
+      rust: rust,
+      severity: severity,
+      flooded: flooded,
+      timebudget: parseInt(e.target.timebudget.value),
+    };
+     console.log('Data sent:', data);
+    // Send POST request to backend
+    try {
+      const response = await fetch('/home/post-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Data sent:', data);
+        console.log('Backend response:', result);
+      } else {
+        const text = await response.text();
+        console.error('Backend error:', response.status, text);
+      }
+    } catch (error) {
+      console.error('Error sending data:', error);
+    }
   };
 
   return (
