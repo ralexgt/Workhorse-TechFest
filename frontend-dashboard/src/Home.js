@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Home.css';
 
-// Example brand data with logo URLs (replace with your own logo paths)
+// Brand data (replace logos with your paths)
 const brands = [
   { name: 'BMW', logo: '/logos/bmw.png' },
   { name: 'Audi', logo: '/logos/audi.png' },
@@ -11,8 +11,10 @@ const brands = [
   { name: 'Honda', logo: '/logos/honda.png' },
   { name: 'Toyota', logo: '/logos/toyota.png' },
   { name: 'Lexus', logo: '/logos/lexus.png' },
-  // Add more brands as needed
 ];
+
+const VEHICLE_TYPES = ['petrol', 'diesel', 'hybrid', 'electric'];
+const CURRENT_YEAR = new Date().getFullYear();
 
 function Home() {
   const [rust, setRust] = useState(0);
@@ -20,22 +22,42 @@ function Home() {
   const [flooded, setFlooded] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
+  const [accidentZone, setAccidentZone] = useState(''); // NEW
+
+  const handleBrandSelect = (brand) => {
+    setSelectedBrand(brand);
+    setShowBrandDropdown(false);
+  };
+
+  const handleZoneChange = (e) => {
+    const val = e.target.value;
+    setAccidentZone(val);
+    if (val === 'none') setSeverity(0); // reset when no accident
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Collect form data
+    if (!selectedBrand) {
+      alert('Please select a brand.');
+      return;
+    }
+
+    const zone = accidentZone || e.target.accidentzone.value;
+    const severityToSend = zone === 'none' ? 0 : severity;
+
     const data = {
-      brand: selectedBrand ? selectedBrand.name : '',
-      year: parseInt(e.target.year.value),
-      odometer: parseInt(e.target.odometer.value),
-      accidentzone: e.target.accidentzone.value,
-      rust: rust,
-      severity: severity,
-      flooded: flooded,
-      timebudget: parseInt(e.target.timebudget.value),
+      brand: selectedBrand.name,
+      year: parseInt(e.target.year.value, 10),
+      odometer: parseInt(e.target.odometer.value, 10),
+      vehicletype: e.target.vehicletype.value,
+      accidentzone: zone,
+      rust,
+      severity: severityToSend,
+      flooded,
+      timebudget: parseInt(e.target.timebudget.value, 10),
     };
-    // Send POST request to backend
+    
     try {
       const response = await fetch('http://localhost:5000/home/post-data', {
         method: 'POST',
@@ -45,7 +67,6 @@ function Home() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Data sent:', data);
         console.log('Backend response:', result);
       } else {
         const text = await response.text();
@@ -56,68 +77,142 @@ function Home() {
     }
   };
 
+  const severityDisabled = accidentZone === 'none' || accidentZone === '';
+
   return (
-    <div>
+    <div className="home-root">
       <h1>Predictive Vehicle Component Dismantling</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="form-row-vin">
-          <label htmlFor="brand">Brand  </label>
+
+      <form onSubmit={handleSubmit} noValidate>
+        {/* Brand */}
+        <div className="form-row-brand">
+          <label className="brand-label">Brand</label>
+
           <div className="brand-dropdown-container">
             <button
               type="button"
               className="brand-dropdown-toggle"
-              onClick={() => setShowBrandDropdown(!showBrandDropdown)}
+              aria-haspopup="listbox"
+              aria-expanded={showBrandDropdown}
+              onClick={() => setShowBrandDropdown((v) => !v)}
             >
               {selectedBrand ? (
                 <span className="brand-selected">
-                  <img src={selectedBrand.logo} alt={selectedBrand.name} className="brand-logo" />
+                  <img
+                    src={selectedBrand.logo}
+                    alt={`${selectedBrand.name} logo`}
+                    className="brand-logo"
+                  />
                   {selectedBrand.name}
                 </span>
               ) : (
                 <span>Select a brand</span>
               )}
-              <span className="dropdown-arrow">&#9662;</span>
+              <span className="dropdown-arrow" aria-hidden>▾</span>
             </button>
+
             {showBrandDropdown && (
-              <div className="brand-dropdown-list">
+              <div className="brand-dropdown-list" role="listbox">
                 {brands.map((brand) => (
-                  <div
+                  <button
+                    type="button"
                     key={brand.name}
+                    role="option"
                     className="brand-card"
-                    onClick={() => {
-                      setSelectedBrand(brand);
-                      setShowBrandDropdown(false);
-                    }}
+                    onClick={() => handleBrandSelect(brand)}
+                    aria-label={`Choose ${brand.name}`}
                   >
-                    <img src={brand.logo} alt={brand.name} className="brand-logo" />
+                    <img
+                      src={brand.logo}
+                      alt={`${brand.name} logo`}
+                      className="brand-card-logo"
+                    />
                     <span>{brand.name}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
         </div>
+
+        {/* Grid fields */}
         <div className="form-grid">
           <div className="form-group">
             <label htmlFor="year">Manufacture Year</label>
-            <input type="number" id="year" name="year" placeholder="Enter the production year" required min="1980" max={2025} defaultValue={2000}/>
+            <input
+              type="number"
+              id="year"
+              name="year"
+              placeholder="Enter the production year"
+              required
+              min="1980"
+              max={CURRENT_YEAR}
+              defaultValue={CURRENT_YEAR - 7}
+            />
           </div>
+
           <div className="form-group">
-            <label htmlFor="odometer">Odometer</label>
-            <input type="number" id="odometer" name="odometer" placeholder="Enter odometer reading" required min="5" />
+            <label htmlFor="odometer">Odometer (km)</label>
+            <input
+              type="number"
+              id="odometer"
+              name="odometer"
+              placeholder="Enter odometer reading"
+              required
+              min="5"
+              step="1"
+            />
           </div>
+
           <div className="form-group">
-            <label htmlFor="accidentzone">Accident Zone</label>
-            <select id="accidentzone" name="accidentzone" required defaultValue="">
-              <option value="" disabled hidden>Select accident zone</option>
-              <option value="none">None</option>
-              <option value="front">Front</option>
-              <option value="rear">Rear</option>
-              <option value="side">Side</option>
+            <label htmlFor="vehicletype">Vehicle Type</label>
+            <select id="vehicletype" name="vehicletype" required defaultValue="">
+              <option value="" disabled hidden>Select vehicle type</option>
+              {VEHICLE_TYPES.map((t) => (
+                <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>
+              ))}
             </select>
           </div>
+
+          {/* Inline: Accident Zone + Severity */}
+          <div className="form-group inline-pair">
+            <div className="inline-field form-group">
+              <label htmlFor="accidentzone">Accident Zone</label>
+              <select
+                id="accidentzone"
+                name="accidentzone"
+                required
+                value={accidentZone}
+                onChange={handleZoneChange}
+              >
+                <option value="" disabled hidden>Select accident zone</option>
+                <option value="none">None</option>
+                <option value="front">Front</option>
+                <option value="rear">Rear</option>
+                <option value="side">Side</option>
+              </select>
+            </div>
+
+            <div className={`inline-field ${severityDisabled ? 'is-disabled' : ''}`}>
+              <label htmlFor="severity">
+                Accident Severity <span className="slider-value">{severity}</span>
+              </label>
+              <input
+                type="range"
+                id="severity"
+                name="severity"
+                min="0"
+                max="5"
+                value={severity}
+                onChange={(e) => setSeverity(Number(e.target.value))}
+                disabled={severityDisabled}
+                aria-disabled={severityDisabled}
+              />
+            </div>
+          </div>
+
           <div className="form-group">
-            <label htmlFor="rust">Rust Level <span>{rust}</span></label>
+            <label htmlFor="rust">Rust Level <span className="slider-value">{rust}</span></label>
             <input
               type="range"
               id="rust"
@@ -125,21 +220,10 @@ function Home() {
               min="0"
               max="5"
               value={rust}
-              onChange={e => setRust(Number(e.target.value))}
+              onChange={(e) => setRust(Number(e.target.value))}
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="severity">Accident Severity <span>{severity}</span></label>
-            <input
-              type="range"
-              id="severity"
-              name="severity"
-              min="0"
-              max="5"
-              value={severity}
-              onChange={e => setSeverity(Number(e.target.value))}
-            />
-          </div>
+
           <div className="form-group">
             <label htmlFor="flooded">Flooded</label>
             <label className="switch">
@@ -148,20 +232,29 @@ function Home() {
                 id="flooded"
                 name="flooded"
                 checked={flooded}
-                onChange={() => setFlooded(!flooded)}
+                onChange={() => setFlooded((v) => !v)}
               />
-              <span className="slider"></span>
+              <span className="slider" />
             </label>
-            <span style={{marginLeft: '1rem', fontWeight: 600, color: flooded ? '#ef8354' : '#e0e0e0'}}>
+            <span className={`switch-state ${flooded ? 'on' : 'off'}`}>
               {flooded ? 'Yes' : 'No'}
             </span>
           </div>
+
           <div className="form-group">
-            <label htmlFor="timebudget">Time Budget</label>
-            <input type="number" id="timebudget" name="timebudget" placeholder="Enter the required time:" required min="10" />
+            <label htmlFor="timebudget">Time Budget (min)</label>
+            <input
+              type="number"
+              id="timebudget"
+              name="timebudget"
+              placeholder="Enter the time budget"
+              required
+              min="10"
+            />
           </div>
         </div>
-        <button type="submit">Submit</button>
+
+        <button type="submit" className="btn-submit">Submit</button>
       </form>
     </div>
   );
