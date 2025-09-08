@@ -57,9 +57,7 @@ function Home() {
       flooded,
       timebudget: parseInt(e.target.timebudget.value, 10),
     };
-
-    console.log('Data sent:', data);
-
+    
     try {
       const response = await fetch('http://localhost:5000/home/post-data', {
         method: 'POST',
