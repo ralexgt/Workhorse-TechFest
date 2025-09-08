@@ -35,10 +35,9 @@ function Home() {
       flooded: flooded,
       timebudget: parseInt(e.target.timebudget.value),
     };
-     console.log('Data sent:', data);
     // Send POST request to backend
     try {
-      const response = await fetch('/home/post-data', {
+      const response = await fetch('http://localhost:5000/home/post-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
