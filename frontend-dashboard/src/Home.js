@@ -125,6 +125,7 @@ function Home({ setBackendResponse }) {
                     className="brand-card"
                     onClick={() => handleBrandSelect(brand)}
                     aria-label={`Choose ${brand.name}`}
+                    aria-selected={selectedBrand === brand.name}
                   >
                     <img
                       src={brand.logo}
