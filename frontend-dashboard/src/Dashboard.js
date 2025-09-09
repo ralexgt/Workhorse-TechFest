@@ -6,6 +6,8 @@ function Dashboard({ response }) {
     return <div>No data received yet.</div>;
   }
 
+  console.log('Rendering dashboard with response:', response);
+
   const usedPct = Math.min(100, Math.round((response.totals.time_min / (response.ui.time_budget_min || response.totals.time_min)) * 100));
   const partsCount = response.selected_order.length;
 
@@ -88,7 +90,7 @@ function Dashboard({ response }) {
                 </div>
                 <div className="stat-card">
                   <div className="stat-label">Profit</div>
-                  <div className="stat-value">€{item.expected_profit_eur.toFixed(2)}</div>
+                  <div className="stat-value">€{response.totals.expected_profit_eur.toFixed(2)}</div>
                 </div>
               </div>
             </li>

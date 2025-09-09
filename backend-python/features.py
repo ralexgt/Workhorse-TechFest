@@ -27,7 +27,7 @@ NUM_COLS = [
     "grade_of_rust",
     "severity_of_accident",
     "is_flooded",
-    "ease_of_acces(0-2)",
+    "ease_of_acces",
 ]
 
 BASE_FEATURES = FeatureSpec(cat_cols=CAT_COLS, num_cols=NUM_COLS)

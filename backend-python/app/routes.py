@@ -1,3 +1,5 @@
+
+import json
 from flask import Blueprint, request, jsonify
 
 from models.inference import create_inference
@@ -18,12 +20,12 @@ def post_data():
     time_budget_min = data.get('timebudget')
 
     obj = create_inference(data, artifacts_dir="backend-python/models/artifacts")
-    obj["ui"] = {"time_budget_min": time_budget_min}
     obj["vehicle"] = {
         "brand": brand,
         "year": year,
         "vehicletype": vehicle_type,
         "odometer_km": odometer
     }
+    obj["ui"] = {"time_budget_min": time_budget_min}
 
     return jsonify(obj), 200

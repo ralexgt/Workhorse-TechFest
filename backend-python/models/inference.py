@@ -23,8 +23,8 @@ def _load_artifacts(artifacts_dir: str, components: list[str]):
 def create_inference(job: dict, artifacts_dir: str) -> dict:
     # 1) Build input frame; inject neutral access if app doesn't provide it
     df = pd.DataFrame([job])
-    if "ease_of_acces(0-2)" not in df.columns:
-        df["ease_of_acces(0-2)"] = 1  # neutral default
+    if "ease_of_acces" not in df.columns:
+        df["ease_of_acces"] = 1  # neutral default
 
     # 2) Discover components and load artifacts
     components = sorted(p.stem.replace("_time","") for p in Path(artifacts_dir).glob("*_time.pkl"))
