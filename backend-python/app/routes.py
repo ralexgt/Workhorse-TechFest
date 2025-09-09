@@ -30,6 +30,19 @@ def post_data():
 
     return jsonify(obj), 200
 
+@app_routes.post('/test-connection')
+def test_connection():
+    data = request.get_json()
+
+    # Process the data as needed
+    # For now, we'll just echo the data back with a success message
+    response = {
+        'message': 'Data received successfully',
+        'received_data': data
+    }
+
+    return jsonify(response), 200
+
 # ---- Health check route ----
 @app_routes.get("/health")
 def health():

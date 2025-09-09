@@ -13,7 +13,7 @@ export default function TestConnection() {
     setError("");
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE}/api/post-data`, {
+      const res = await fetch(`${API_BASE}/api/test-connection`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
