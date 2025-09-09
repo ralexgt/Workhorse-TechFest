@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-
+# Docs: https://github.com/Azure/webapps-deploy
 name: Build and deploy Python app to Azure Web App - vehicle-dismantling-api
 
 on:
@@ -11,13 +8,6 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: vehicle-dismantling-api
-  PYTHON_VERSION: "3.11"
-  # Set this repo variable in GitHub: Settings → Variables → Actions
-  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -28,26 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-          cache-dependency-path: backend-python/requirements.txt
+      # We don’t need to create a venv or pip install on the runner.
+      # App Service (Oryx) will install from requirements.txt on deploy/start.
 
-      # Optional "smoke test" of requirements to fail fast on bad pins.
-      - name: Validate requirements (optional)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend-python/requirements.txt
-
-      - name: Upload artifact (only backend folder)
+      - name: Upload backend as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: backend
-          path: |
-            backend-python
-          if-no-files-found: error
+          name: backend-python
+          path: backend-python
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,36 +38,38 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: backend
+          name: backend-python
+          path: .
 
-      - name: Azure login (OIDC)
+      - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7663DF00EABC4498862FC7085FB509BF }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A8E88DB4193742E0B1AD9D23B117B0A4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EA5334BB99E541E2A069978BFEB031B2 }}
 
-      # Make the fix "stick": let Kudu/Oryx do a server-side build (pip install) on deploy,
-      # and set a stable startup command that points at backend-python/main:app.
-      - name: Configure app settings and startup
+      # Set startup & app settings (idempotent). Make sure you created a repo/environment variable:
+      # AZURE_RESOURCE_GROUP=rg-vehicle-dismantle-app-dev-westeurope
+      - name: Set startup command and app settings
         uses: azure/CLI@v2
         with:
+          azcliversion: 2.61.0
           inlineScript: |
-            az webapp config appsettings set \
-              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
-              --name "${{ env.AZURE_WEBAPP_NAME }}" \
-              --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true
-
-            # Set the Linux startup command (Gunicorn)
             az webapp config set \
-              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
-              --name "${{ env.AZURE_WEBAPP_NAME }}" \
-              --startup-file "gunicorn --chdir backend-python -w 1 -k gthread --threads 4 --timeout 180 --log-level info -b 0.0.0.0:\$PORT main:app"
+              -g ${{ vars.AZURE_RESOURCE_GROUP }} \
+              -n ${{ env.AZURE_WEBAPP_NAME }} \
+              --startup-file "gunicorn --chdir /home/site/wwwroot -w 2 -k gthread --threads 4 --timeout 180 -b 0.0.0.0:\$PORT main:app"
+
+            # Let Oryx build from requirements at deploy/start
+            az webapp config appsettings set \
+              -g ${{ vars.AZURE_RESOURCE_GROUP }} \
+              -n ${{ env.AZURE_WEBAPP_NAME }} \
+              --settings SCM_DO_BUILD_DURING_DEPLOYMENT=1 ENABLE_ORYX_BUILD=1
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: Production
-          package: backend-python # deploy folder contents to site root
-          clean: true # wipe wwwroot before deploying
+          package: backend-python
+          clean: true
