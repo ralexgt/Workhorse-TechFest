@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
+const API_BASE = "https://vehicle-dismantling-api.azurewebsites.net";
+
 // Brand data (replace logos with your paths)
 const brands = [
   { name: 'BMW', logo: '/logos/bmw.png' },
@@ -61,7 +63,7 @@ function Home({ setBackendResponse }) {
     };
     
     try {
-      const response = await fetch('http://localhost:5000/home/post-data', {
+      const response = await fetch(`${API_BASE}/api/post-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

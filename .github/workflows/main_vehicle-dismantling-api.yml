@@ -65,7 +65,7 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: dismantle-api
+          app-name: vehicle-dismantling-api
           slot-name: Production
           package: deploy.zip
           clean: true
