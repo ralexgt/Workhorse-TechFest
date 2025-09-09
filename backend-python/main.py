@@ -12,8 +12,6 @@ def create_app():
 # Expose a module-level WSGI app for Gunicorn: "main:app"
 app = create_app()
 
-#
-
 if __name__ == "__main__":
     # Local/dev run: bind to 0.0.0.0 and use Azure's PORT if present
     port = int(os.environ.get("PORT", 5000))
