@@ -1,30 +1,18 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import Dashboard from './Dashboard';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './Home';
+import Dashboard from './Dashboard';
 import './Home.css';
 import './Dashboard.css';
 
-// ...brands array...
-function Application() {
-  // ...your existing home page code...
-  const navigate = useNavigate();
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Future: send data to backend here
-    navigate('/dashboard'); // Go to dashboard after submit
-  };
-
-  // ...return your form as before...
-}
-
 function App() {
+  const [backendResponse, setBackendResponse] = useState(null);
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Home setBackendResponse={setBackendResponse} />} />
+        <Route path="/dashboard" element={<Dashboard response={backendResponse} />} />
       </Routes>
     </Router>
   );

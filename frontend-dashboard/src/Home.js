@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
 // Brand data (replace logos with your paths)
@@ -16,13 +17,14 @@ const brands = [
 const VEHICLE_TYPES = ['petrol', 'diesel', 'hybrid', 'electric'];
 const CURRENT_YEAR = new Date().getFullYear();
 
-function Home() {
+function Home({ setBackendResponse }) {
   const [rust, setRust] = useState(0);
   const [severity, setSeverity] = useState(0);
   const [flooded, setFlooded] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [accidentZone, setAccidentZone] = useState(''); // NEW
+  const navigate = useNavigate();
 
   const handleBrandSelect = (brand) => {
     setSelectedBrand(brand);
@@ -50,11 +52,11 @@ function Home() {
       brand: selectedBrand.name,
       year: parseInt(e.target.year.value, 10),
       odometer: parseInt(e.target.odometer.value, 10),
-      vehicletype: e.target.vehicletype.value,
-      accidentzone: zone,
-      rust,
-      severity: severityToSend,
-      flooded,
+      vehicle_type: e.target.vehicletype.value,
+      accident_zone: zone,
+      grade_of_rust: rust,
+      severity_of_accident: severityToSend,
+      is_flooded: flooded,
       timebudget: parseInt(e.target.timebudget.value, 10),
     };
     
@@ -67,7 +69,9 @@ function Home() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Backend response:', result);
+        // console.log(result);
+        setBackendResponse(result); // Save response
+        navigate('/dashboard');     // Redirect to dashboard
       } else {
         const text = await response.text();
         console.error('Backend error:', response.status, text);

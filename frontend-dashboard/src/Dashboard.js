@@ -1,29 +1,12 @@
 import './Dashboard.css';
 
-// Example: use BMW as default, replace with dynamic brand/logo later
-const brandLogo = '/logos/bmw.png';
 
-function Dashboard() {
-  const response = {
-    mandatory_first: ["isolate_12v_battery"],
-    selected_order: [
-      { component: "battery",      pred_time_min: 13.5,  success_prob: 0.43, expected_profit_eur: 5.6,  decision: "reuse"   },
-      { component: "seat_front",   pred_time_min: 29.59, success_prob: 0.50, expected_profit_eur: 7.37, decision: "reuse"   },
-      { component: "headlight",    pred_time_min: 26.43, success_prob: 0.53, expected_profit_eur: 2.11, decision: "reuse"   },
-      { component: "mirror_side",  pred_time_min: 20.56, success_prob: 0.19, expected_profit_eur: 0.84, decision: "recycle" }
-    ],
-    skipped: {
-      bumper: "negative expected profit",
-      door_front: "negative expected profit",
-      door_rear: "negative expected profit",
-      radiator: "negative expected profit",
-      starter: "negative expected profit",
-      alternator: "would exceed 90-min budget after higher ROI picks"
-    },
-    totals: { time_min: 90.08, expected_profit_eur: 15.93 },
-    vehicle: { brand: 'BMW', model: '3 Series', year: 2018, vehicletype: 'petrol', odometer_km: 126450 },
-    ui: { time_budget_min: 90 }
-  };
+function Dashboard({ response }) {
+  if (!response) {
+    return <div>No data received yet.</div>;
+  }
+
+  console.log('Rendering dashboard with response:', response);
 
   const usedPct = Math.min(100, Math.round((response.totals.time_min / (response.ui.time_budget_min || response.totals.time_min)) * 100));
   const partsCount = response.selected_order.length;
@@ -34,10 +17,10 @@ function Dashboard() {
       {/* Vehicle strip with inline logo + name */}
       <section className="vehicle-strip">
         <div className="vehicle-main">
-          <img src={brandLogo} alt="Brand" className="brand-inline" />
+          <img src={`/logos/${response.vehicle.brand}.png`} alt="Brand" className="brand-inline" />
           <div className="vehicle-heading">
             <div className="vehicle-line">
-              <span className="veh-title">{response.vehicle.brand} {response.vehicle.model}</span>
+              <span className="veh-title">{response.vehicle.brand}</span>
               <span className="veh-meta">• {response.vehicle.year}</span>
             </div>
             <div className="veh-badges">
@@ -107,7 +90,7 @@ function Dashboard() {
                 </div>
                 <div className="stat-card">
                   <div className="stat-label">Profit</div>
-                  <div className="stat-value">€{item.expected_profit_eur.toFixed(2)}</div>
+                  <div className="stat-value">€{response.totals.expected_profit_eur.toFixed(2)}</div>
                 </div>
               </div>
             </li>
