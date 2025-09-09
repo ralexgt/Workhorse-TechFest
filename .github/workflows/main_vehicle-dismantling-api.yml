@@ -49,7 +49,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A8E88DB4193742E0B1AD9D23B117B0A4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EA5334BB99E541E2A069978BFEB031B2 }}
 
-      # ✅ Deploy JUST the backend folder as site root; wipe wwwroot first to avoid leftover tarballs
+      # ✅ Zip deploy JUST backend-python as the site root
+      # ✅ Wipe wwwroot first to avoid stale output.tar.gz
+      # ✅ Set the startup command so Gunicorn runs your app module (main:app) at root
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
@@ -57,3 +59,6 @@ jobs:
           slot-name: Production
           package: backend-python
           clean: true
+          startup-command: |
+            gunicorn -w 1 -k gthread --threads 4 --timeout 180 --log-level info \
+            -b 0.0.0.0:$PORT main:app
