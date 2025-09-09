@@ -1,7 +1,7 @@
 import json
 from flask import Blueprint, request, jsonify
 
-from ..models.inference import create_inference
+from models.inference import create_inference
 
 # Create a blueprint for the routes
 app_routes = Blueprint('app_routes', __name__)

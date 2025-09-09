@@ -4,8 +4,8 @@ import json
 import joblib
 import pandas as pd
 
-from ..models.knapsack import select_under_budget
-from ..models.pricing import build_candidate_item, render_output, compute_mandatory_steps
+from models.knapsack import select_under_budget
+from models.pricing import build_candidate_item, render_output, compute_mandatory_steps
 
 
 def _load_artifacts(artifacts_dir: str, components: list[str]):
