@@ -8,7 +8,7 @@ from models.inference import create_inference
 app_routes = Blueprint('app_routes', __name__)
 
 
-@app_routes.route('/home/post-data', methods=['POST'])
+@app_routes.post('/post-data')
 def post_data():
     data = request.get_json()
 
@@ -29,3 +29,8 @@ def post_data():
     obj["ui"] = {"time_budget_min": time_budget_min}
 
     return jsonify(obj), 200
+
+# ---- Health check route ----
+@app_routes.get("/health")
+def health():
+    return {"status": "ok"}, 200
