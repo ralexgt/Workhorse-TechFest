@@ -52,11 +52,11 @@ function Home({ setBackendResponse }) {
       brand: selectedBrand.name,
       year: parseInt(e.target.year.value, 10),
       odometer: parseInt(e.target.odometer.value, 10),
-      vehicletype: e.target.vehicletype.value,
-      accidentzone: zone,
-      rust,
-      severity: severityToSend,
-      flooded,
+      vehicle_type: e.target.vehicletype.value,
+      accident_zone: zone,
+      grade_of_rust: rust,
+      severity_of_accident: severityToSend,
+      is_flooded: flooded,
       timebudget: parseInt(e.target.timebudget.value, 10),
     };
     

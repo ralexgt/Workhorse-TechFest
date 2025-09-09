@@ -1,7 +1,5 @@
 import './Dashboard.css';
 
-// Example: use BMW as default, replace with dynamic brand/logo later
-const brandLogo = '/logos/bmw.png';
 
 function Dashboard({ response }) {
   if (!response) {
@@ -17,10 +15,10 @@ function Dashboard({ response }) {
       {/* Vehicle strip with inline logo + name */}
       <section className="vehicle-strip">
         <div className="vehicle-main">
-          <img src={brandLogo} alt="Brand" className="brand-inline" />
+          <img src={`/logos/${response.vehicle.brand}.png`} alt="Brand" className="brand-inline" />
           <div className="vehicle-heading">
             <div className="vehicle-line">
-              <span className="veh-title">{response.vehicle.brand} {response.vehicle.model}</span>
+              <span className="veh-title">{response.vehicle.brand}</span>
               <span className="veh-meta">• {response.vehicle.year}</span>
             </div>
             <div className="veh-badges">

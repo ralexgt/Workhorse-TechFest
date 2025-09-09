@@ -24,8 +24,8 @@ CAT_COLS = ["accident_zone", "vehicle_type"]
 NUM_COLS = [
     "year",
     "odometer",
-    "grade_of_rust(0-5)",
-    "severity_of_accident(0-5)",
+    "grade_of_rust",
+    "severity_of_accident",
     "is_flooded",
     "ease_of_acces(0-2)",
 ]

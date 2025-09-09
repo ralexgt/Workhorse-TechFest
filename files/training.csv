@@ -1,4 +1,4 @@
-year,odometer,grade_of_rust(0-5),accident_zone,severity_of_accident(0-5),is_flooded,component,ease_of_acces(0-2),time_in_minutes,success,vehicle_type
+year,odometer,grade_of_rust,accident_zone,severity_of_accident,is_flooded,component,ease_of_acces(0-2),time_in_minutes,success,vehicle_type
 2008.0,254000,0.0,none,0.0,0.0,battery,0.0,9.2,1.0,combustion
 2009.0,251000,1.0,front,2.0,0.0,battery,0.0,10.1,1.0,ev
 2010.0,203000,2.0,rear,3.0,0.0,battery,0.0,10.5,1.0,ev

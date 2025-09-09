@@ -76,8 +76,8 @@ def _profit_reuse_eur(component: str, success_prob: float, pred_time_min: float,
     resale = price_for(
         component=component,
         year=int(job["year"]),
-        severity_0_5=int(job["severity_of_accident(0-5)"]),
-        rust_0_5=int(job["grade_of_rust(0-5)"]),
+        severity_0_5=int(job["severity_of_accident"]),
+        rust_0_5=int(job["grade_of_rust"]),
         flood=int(job["is_flooded"]),
         vehicle_type=str(job["vehicle_type"]),
     )
