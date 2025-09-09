@@ -204,3 +204,8 @@ input[type="range"]{
   .form-grid{grid-template-columns:1fr}
   .brand-dropdown-container{max-width:100%}
 }
+@media (min-width:901px){
+    .home-root form{
+      max-width: 75vw;
+  }
+}

@@ -53,8 +53,8 @@ function Dashboard() {
         <div className="vehicle-kpis">
           <div className="kpi kpi-box">
             <div className="kpi-label">Time used</div>
-            <div className="kpi-gauge" aria-label={`Time used ${usedPct}%`}>
-              <div className="kpi-gauge-fill" style={{ '--kpi': `${usedPct}%` }} />
+            <div className="kpi-gauge" aria-label={`Time used ${usedPct}%`} style={{ '--kpi': `${usedPct}%` }}>
+              <div className="kpi-gauge-fill"  />
               <div className="kpi-gauge-text">{usedPct}%</div>
             </div>
           </div>
@@ -66,15 +66,9 @@ function Dashboard() {
             <div className="kpi-label">Selected Parts</div>
             <div className="kpi-big">{partsCount}</div>
           </div>
-        </div>
-      </section>
-
-      {/* Standalone Total Time card */}
-      <section className="dashboard-section">
-        <div className="card-row">
-          <div className="single-card">
-            <div className="single-card-label">Total Time</div>
-            <div className="single-card-value">{response.totals.time_min.toFixed(2)} min</div>
+          <div className="kpi kpi-box">
+            <div className="kpi-label">Total Time</div>
+            <div className="kpi-big">{response.totals.time_min.toFixed(2)} min</div>
           </div>
         </div>
       </section>
