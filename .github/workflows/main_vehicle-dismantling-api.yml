@@ -14,12 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - uses: actions/checkout@v4
 
-      # No need to pip install on the runner; App Service (Oryx) will install on start.
-
+      # Upload ONLY the backend folder
       - name: Upload backend as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -40,35 +38,43 @@ jobs:
           name: backend-python
           path: .
 
-      - name: Login to Azure
+      - name: Login to Azure (OIDC)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7663DF00EABC4498862FC7085FB509BF }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A8E88DB4193742E0B1AD9D23B117B0A4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EA5334BB99E541E2A069978BFEB031B2 }}
 
-      # Workaround the msal "NormalizedResponse" pickle error:
-      # Use a fresh AZURE_CONFIG_DIR inside the container so it doesn't try to load a stale cache.
-      - name: Set startup command and app settings
+      # Fresh AZ CLI config (to avoid MSAL cache error) + explicit OIDC login inside the container
+      - name: Configure web app (startup + settings)
         uses: azure/CLI@v2
         with:
           azcliversion: 2.61.0
           inlineScript: |
             set -e
-            export AZURE_CONFIG_DIR=$(mktemp -d)
-            # optional: show context
-            az account show -o table || true
 
-            # Set the Linux startup command (gunicorn from site root)
+            # Use a clean config dir so we don't hit the MSAL pickle issue
+            export AZURE_CONFIG_DIR="$(mktemp -d)"
+
+            # Re-login inside the container using federated token from azure/login@v2
+            az login --service-principal \
+              --username "$AZURE_CLIENT_ID" \
+              --tenant "$AZURE_TENANT_ID" \
+              --federated-token "$(cat "$AZURE_FEDERATED_TOKEN_FILE")" \
+              --output none
+
+            az account set -s "$AZURE_SUBSCRIPTION_ID"
+
+            # Set startup command (gunicorn expects main:app in site root)
             az webapp config set \
-              -g ${{ vars.AZURE_RESOURCE_GROUP }} \
-              -n ${{ env.AZURE_WEBAPP_NAME }} \
+              -g "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              -n "${{ env.AZURE_WEBAPP_NAME }}" \
               --startup-file "gunicorn --chdir /home/site/wwwroot -w 2 -k gthread --threads 4 --timeout 180 -b 0.0.0.0:\$PORT main:app"
 
-            # Ensure Oryx installs from requirements at startup
+            # Ensure Oryx builds from requirements.txt on startup
             az webapp config appsettings set \
-              -g ${{ vars.AZURE_RESOURCE_GROUP }} \
-              -n ${{ env.AZURE_WEBAPP_NAME }} \
+              -g "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              -n "${{ env.AZURE_WEBAPP_NAME }}" \
               --settings SCM_DO_BUILD_DURING_DEPLOYMENT=1 ENABLE_ORYX_BUILD=1
 
       - name: Deploy to Azure Web App
