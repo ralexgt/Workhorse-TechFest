@@ -4,6 +4,7 @@ import Home from './Home';
 import Dashboard from './Dashboard';
 import './Home.css';
 import './Dashboard.css';
+import TestConnection from "./TestConnection";
 
 function App() {
   const [backendResponse, setBackendResponse] = useState(null);
