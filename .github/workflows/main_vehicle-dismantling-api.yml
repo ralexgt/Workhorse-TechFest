@@ -18,8 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # We don’t need to create a venv or pip install on the runner.
-      # App Service (Oryx) will install from requirements.txt on deploy/start.
+      # No need to pip install on the runner; App Service (Oryx) will install on start.
 
       - name: Upload backend as artifact
         uses: actions/upload-artifact@v4
@@ -48,19 +47,25 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A8E88DB4193742E0B1AD9D23B117B0A4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EA5334BB99E541E2A069978BFEB031B2 }}
 
-      # Set startup & app settings (idempotent). Make sure you created a repo/environment variable:
-      # AZURE_RESOURCE_GROUP=rg-vehicle-dismantle-app-dev-westeurope
+      # Workaround the msal "NormalizedResponse" pickle error:
+      # Use a fresh AZURE_CONFIG_DIR inside the container so it doesn't try to load a stale cache.
       - name: Set startup command and app settings
         uses: azure/CLI@v2
         with:
           azcliversion: 2.61.0
           inlineScript: |
+            set -e
+            export AZURE_CONFIG_DIR=$(mktemp -d)
+            # optional: show context
+            az account show -o table || true
+
+            # Set the Linux startup command (gunicorn from site root)
             az webapp config set \
               -g ${{ vars.AZURE_RESOURCE_GROUP }} \
               -n ${{ env.AZURE_WEBAPP_NAME }} \
               --startup-file "gunicorn --chdir /home/site/wwwroot -w 2 -k gthread --threads 4 --timeout 180 -b 0.0.0.0:\$PORT main:app"
 
-            # Let Oryx build from requirements at deploy/start
+            # Ensure Oryx installs from requirements at startup
             az webapp config appsettings set \
               -g ${{ vars.AZURE_RESOURCE_GROUP }} \
               -n ${{ env.AZURE_WEBAPP_NAME }} \
