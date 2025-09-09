@@ -6,67 +6,90 @@ name: Build and deploy Python app to Azure Web App - vehicle-dismantling-api
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: vehicle-dismantling-api
+  PYTHON_VERSION: "3.11"
+  # Set this repo variable in GitHub: Settings → Variables → Actions
+  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python version
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend-python/requirements.txt
 
-      - name: Create and start virtual environment
-        working-directory: backend-python
+      # Optional "smoke test" of requirements to fail fast on bad pins.
+      - name: Validate requirements (optional)
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r backend-python/requirements.txt
 
-      - name: Install dependencies
-        working-directory: backend-python
-        run: pip install -r requirements.txt
-
-      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
-
-      - name: Upload artifact for deployment jobs
+      - name: Upload artifact (only backend folder)
         uses: actions/upload-artifact@v4
         with:
-          name: python-app
+          name: backend
           path: |
-            .
-            !venv/
+            backend-python
+          if-no-files-found: error
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: python-app
+          name: backend
 
-      - name: Login to Azure
+      - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7663DF00EABC4498862FC7085FB509BF }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A8E88DB4193742E0B1AD9D23B117B0A4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_EA5334BB99E541E2A069978BFEB031B2 }}
 
-      - name: "Deploy to Azure Web App"
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
+      # Make the fix "stick": let Kudu/Oryx do a server-side build (pip install) on deploy,
+      # and set a stable startup command that points at backend-python/main:app.
+      - name: Configure app settings and startup
+        uses: azure/CLI@v2
         with:
-          app-name: "vehicle-dismantling-api"
-          slot-name: "Production"
+          inlineScript: |
+            az webapp config appsettings set \
+              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+              --name "${{ env.AZURE_WEBAPP_NAME }}" \
+              --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+            # Set the Linux startup command (Gunicorn)
+            az webapp config set \
+              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+              --name "${{ env.AZURE_WEBAPP_NAME }}" \
+              --startup-file "gunicorn --chdir backend-python -w 1 -k gthread --threads 4 --timeout 180 --log-level info -b 0.0.0.0:\$PORT main:app"
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: Production
+          package: backend-python # deploy folder contents to site root
+          clean: true # wipe wwwroot before deploying
