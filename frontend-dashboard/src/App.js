@@ -13,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home setBackendResponse={setBackendResponse} />} />
         <Route path="/dashboard" element={<Dashboard response={backendResponse} />} />
+        <Route path="/testConnection" element={<TestConnection />} />
       </Routes>
     </Router>
   );
