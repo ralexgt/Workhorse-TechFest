@@ -115,7 +115,8 @@ function Home({ setBackendResponse }) {
               className={`brand-dropdown-toggle ${submitted && !selectedBrand ? 'error' : ''}`}
               aria-haspopup="listbox"
               aria-expanded={showBrandDropdown}
-              aria-invalid={submitted && !selectedBrand ? 'true' : 'false'}
+              aria-controls="brand-listbox"
+              aria-describedby={submitted && !selectedBrand ? 'brand-error' : undefined}
               onClick={() => setShowBrandDropdown((v) => !v)}
             >
               {selectedBrand ? (
@@ -133,26 +134,44 @@ function Home({ setBackendResponse }) {
               <span className="dropdown-arrow" aria-hidden>▾</span>
             </button>
 
+            {/* Inline error helper, referenced by aria-describedby */}
+            {submitted && !selectedBrand && (
+              <p id="brand-error" className="field-error">Please select a brand.</p>
+            )}
+
             {showBrandDropdown && (
-              <div className="brand-dropdown-list" role="listbox">
-                {brands.map((brand) => (
-                  <button
-                    type="button"
-                    key={brand.name}
-                    role="option"
-                    className="brand-card"
-                    onClick={() => handleBrandSelect(brand)}
-                    aria-label={`Choose ${brand.name}`}
-                  >
-                    <img
-                      src={brand.logo}
-                      alt={`${brand.name} logo`}
-                      className="brand-card-logo"
-                    />
-                    <span>{brand.name}</span>
-                  </button>
-                ))}
-              </div>
+              <ul
+                id="brand-listbox"
+                className="brand-dropdown-list"
+                role="listbox"
+              >
+                {brands.map((brand) => {
+                  const isSelected = selectedBrand?.name === brand.name;
+                  return (
+                    <li
+                      key={brand.name}
+                      role="option"
+                      aria-selected={isSelected}
+                      tabIndex={-1}
+                      className={`brand-card ${isSelected ? 'is-selected' : ''}`}
+                      onClick={() => handleBrandSelect(brand)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleBrandSelect(brand);
+                        }
+                      }}
+                    >
+                      <img
+                        src={brand.logo}
+                        alt={`${brand.name} logo`}
+                        className="brand-card-logo"
+                      />
+                      <span>{brand.name}</span>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
         </div>
