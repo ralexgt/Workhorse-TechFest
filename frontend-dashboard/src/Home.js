@@ -4,16 +4,29 @@ import './Home.css';
 
 const API_BASE = "https://vehicle-dismantling-api.azurewebsites.net";
 
-// Brand data (replace logos with your paths)
+// Helpers for safe, lowercase logo filenames and URLs from /public/logos
+const toFileName = (name) =>
+  String(name || '')
+    .normalize('NFKD')                 // e.g., Škoda -> Skoda
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')              // spaces -> hyphens (Land Rover -> land-rover)
+    .replace(/[^a-z0-9-]/g, '');       // keep only safe chars
+
+const logoUrl = (brandName) =>
+  `${process.env.PUBLIC_URL}/logos/${toFileName(brandName)}.png`;
+
+// Brand data (names only; logos are computed so paths and casing are always correct)
 const brands = [
-  { name: 'BMW', logo: '/logos/bmw.png' },
-  { name: 'Audi', logo: '/logos/audi.png' },
-  { name: 'VW', logo: '/logos/vw.png' },
-  { name: 'Skoda', logo: '/logos/skoda.png' },
-  { name: 'Mazda', logo: '/logos/mazda.png' },
-  { name: 'Honda', logo: '/logos/honda.png' },
-  { name: 'Toyota', logo: '/logos/toyota.png' },
-  { name: 'Lexus', logo: '/logos/lexus.png' },
+  { name: 'BMW' },
+  { name: 'Audi' },
+  { name: 'VW' },
+  { name: 'Skoda' },
+  { name: 'Mazda' },
+  { name: 'Honda' },
+  { name: 'Toyota' },
+  { name: 'Lexus' },
 ];
 
 const VEHICLE_TYPES = ['combustion', 'ev', 'hybrid'];
@@ -25,14 +38,14 @@ function Home({ setBackendResponse }) {
   const [flooded, setFlooded] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
-  const [accidentZone, setAccidentZone] = useState(''); // NEW
+  const [accidentZone, setAccidentZone] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
   function hasErrors() {
-  // native required will handle most inputs; brand is custom
-  const brandMissing = !selectedBrand;
-  return brandMissing;
+    // native required will handle most inputs; brand is custom
+    const brandMissing = !selectedBrand;
+    return brandMissing;
   }
 
   const handleBrandSelect = (brand) => {
@@ -51,7 +64,7 @@ function Home({ setBackendResponse }) {
     setSubmitted(true);
 
     const form = e.currentTarget;
-    const formInvalid = !e.currentTarget.checkValidity() || hasErrors();
+    const formInvalid = !form.checkValidity() || hasErrors();
     if (formInvalid) {
       form.reportValidity();
       const firstInvalid = form.querySelector(':invalid');
@@ -81,9 +94,9 @@ function Home({ setBackendResponse }) {
       is_flooded: flooded,
       timebudget: parseInt(e.target.timebudget.value, 10),
     };
-    
+
     try {
-      const response = await fetch('http://localhost:5000/home/post-data', {
+      const response = await fetch(`${API_BASE}/api/post-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -91,8 +104,8 @@ function Home({ setBackendResponse }) {
 
       if (response.ok) {
         const result = await response.json();
-        setBackendResponse(result); 
-        navigate('/dashboard');    
+        setBackendResponse(result);
+        navigate('/dashboard');
       } else {
         const text = await response.text();
         console.error('Backend error:', response.status, text);
@@ -103,6 +116,15 @@ function Home({ setBackendResponse }) {
   };
 
   const severityDisabled = accidentZone === 'none' || accidentZone === '';
+  const isInvalidBrand = submitted && !selectedBrand;
+
+  // keyboard support for list options
+  const onOptionKeyDown = (brand, e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleBrandSelect(brand);
+    }
+  };
 
   return (
     <div className="home-root">
@@ -111,23 +133,27 @@ function Home({ setBackendResponse }) {
       <form onSubmit={handleSubmit} noValidate className={submitted ? 'show-errors' : ''}>
         {/* Brand */}
         <div className="form-row-brand">
-          <label className="brand-label">Brand</label>
+          <label className="brand-label" id="brand-label">Brand</label>
 
           <div className="brand-dropdown-container">
             <button
               type="button"
-              className={`brand-dropdown-toggle ${submitted && !selectedBrand ? 'error' : ''}`}
+              className={`brand-dropdown-toggle ${isInvalidBrand ? 'error' : ''}`}
               aria-haspopup="listbox"
               aria-expanded={showBrandDropdown}
-              aria-invalid={submitted && !selectedBrand ? 'true' : 'false'}
+              aria-controls="brand-listbox"                            // associate button with popup
+              aria-describedby={isInvalidBrand ? 'brand-error' : undefined}
               onClick={() => setShowBrandDropdown((v) => !v)}
             >
               {selectedBrand ? (
                 <span className="brand-selected">
                   <img
-                    src={selectedBrand.logo}
+                    src={logoUrl(selectedBrand.name)}
                     alt={`${selectedBrand.name} logo`}
                     className="brand-logo"
+                    onError={(e) => {
+                      e.currentTarget.src = `${process.env.PUBLIC_URL}/logos/default.png`;
+                    }}
                   />
                   {selectedBrand.name}
                 </span>
@@ -137,26 +163,46 @@ function Home({ setBackendResponse }) {
               <span className="dropdown-arrow" aria-hidden>▾</span>
             </button>
 
+            {isInvalidBrand && (
+              <p id="brand-error" role="alert" className="brand-error-text">
+                Please select a brand.
+              </p>
+            )}
+
             {showBrandDropdown && (
-              <div className="brand-dropdown-list" role="listbox">
-                {brands.map((brand) => (
-                  <button
-                    type="button"
-                    key={brand.name}
-                    role="option"
-                    className="brand-card"
-                    onClick={() => handleBrandSelect(brand)}
-                    aria-label={`Choose ${brand.name}`}
-                  >
-                    <img
-                      src={brand.logo}
-                      alt={`${brand.name} logo`}
-                      className="brand-card-logo"
-                    />
-                    <span>{brand.name}</span>
-                  </button>
-                ))}
-              </div>
+              <ul
+                id="brand-listbox"
+                role="listbox"
+                className="brand-dropdown-list"
+                aria-labelledby="brand-label"
+                aria-invalid={isInvalidBrand ? 'true' : undefined}          // valid on listbox, not on button
+                aria-errormessage={isInvalidBrand ? 'brand-error' : undefined}
+              >
+                {brands.map((brand) => {
+                  const selected = selectedBrand?.name === brand.name;
+                  return (
+                    <li
+                      key={brand.name}
+                      role="option"
+                      aria-selected={selected ? 'true' : 'false'}
+                      className={`brand-card ${selected ? 'is-selected' : ''}`}
+                      tabIndex={0}
+                      onClick={() => handleBrandSelect(brand)}
+                      onKeyDown={(e) => onOptionKeyDown(brand, e)}
+                    >
+                      <img
+                        src={logoUrl(brand.name)}
+                        alt={`${brand.name} logo`}
+                        className="brand-card-logo"
+                        onError={(e) => {
+                          e.currentTarget.src = `${process.env.PUBLIC_URL}/logos/default.png`;
+                        }}
+                      />
+                      <span>{brand.name}</span>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
         </div>
@@ -220,23 +266,22 @@ function Home({ setBackendResponse }) {
             </div>
 
             <div className={`inline-field form-group ${severityDisabled ? 'is-disabled' : ''}`}>
-            <label htmlFor="severity">Accident Severity</label>
-            <div className="range-inline">
-              <input
-                type="range"
-                id="severity"
-                name="severity"
-                min="0"
-                max="5"
-                value={severity}
-                onChange={(e) => setSeverity(Number(e.target.value))}
-                disabled={severityDisabled}
-                aria-disabled={severityDisabled}
-              />
-              <span className="range-value">{severity}</span>
+              <label htmlFor="severity">Accident Severity</label>
+              <div className="range-inline">
+                <input
+                  type="range"
+                  id="severity"
+                  name="severity"
+                  min="0"
+                  max="5"
+                  value={severity}
+                  onChange={(e) => setSeverity(Number(e.target.value))}
+                  disabled={severityDisabled}
+                  aria-disabled={severityDisabled}
+                />
+                <span className="range-value">{severity}</span>
+              </div>
             </div>
-          </div>
-
           </div>
 
           <div className="form-group">
