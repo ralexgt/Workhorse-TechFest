@@ -150,5 +150,4 @@ MODEL_PATH=models/xgboost_model.pkl
 
 🌐 Check it Out
 The live demo lives on:
-
-https://calm-pebble-07af23d03.1.azurestaticapps.net/
+[DEMO](https://calm-pebble-07af23d03.1.azurestaticapps.net/)
