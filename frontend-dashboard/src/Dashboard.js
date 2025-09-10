@@ -2,6 +2,7 @@ import './Dashboard.css';
 
 
 function Dashboard({ response }) {
+
   if (!response) {
     return <div>No data received yet.</div>;
   }
@@ -11,6 +12,14 @@ function Dashboard({ response }) {
   const usedPct = Math.min(100, Math.round((response.totals.time_min / (response.ui.time_budget_min || response.totals.time_min)) * 100));
   const partsCount = response.selected_order.length;
 
+  const fileBrand = String(response.vehicle.brand)
+    .normalize('NFKD')                 // strip accents (Škoda -> Skoda)
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')              // spaces -> hyphens (Land Rover -> land-rover)
+    .replace(/[^a-z0-9-]/g, '');       // keep only safe chars
+
   return (
     <div className="dashboard-container">
 
@@ -18,7 +27,7 @@ function Dashboard({ response }) {
       <section className="vehicle-strip">
         <div className="vehicle-main">
           <img
-            src={`${process.env.PUBLIC_URL}/logos/${response.vehicle.brand}.png`}
+            src={`${process.env.PUBLIC_URL}/logos/${fileBrand}.png`}
             alt={response?.vehicle?.brand || 'Brand'}
             className="brand-inline"
           />
