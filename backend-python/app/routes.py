@@ -1,28 +1,28 @@
 import json
+from pathlib import Path
 from flask import Blueprint, request, jsonify
 
+import models as models_pkg
 from models.inference import create_inference
-from pathlib import Path
 
-# Create a blueprint for the routes
+# Blueprint
 app_routes = Blueprint('app_routes', __name__)
 
-
-# ./models/artifacts relative to THIS file's folder
-ARTIFACTS_DIR = (Path(__file__).resolve().parent / "models" / "artifacts2").as_posix()
+# Resolve: <repo>/backend-python/models/artifacts2
+ARTIFACTS_DIR = Path(models_pkg.__file__).resolve().parent / "artifacts2"
 
 @app_routes.post('/post-data')
 def post_data():
-    data = request.get_json()
+    data = request.get_json() or {}
 
-    # Process the data as needed
     brand = data.get('brand')
     odometer = data.get('odometer')
     vehicle_type = data.get('vehicletype')
     year = data.get('year')
     time_budget_min = data.get('timebudget')
 
-    obj = create_inference(data, artifacts_dir=ARTIFACTS_DIR)
+    # Pass the resolved artifacts dir
+    obj = create_inference(data, artifacts_dir=str(ARTIFACTS_DIR))
     obj["vehicle"] = {
         "brand": brand,
         "year": year,
@@ -35,18 +35,9 @@ def post_data():
 
 @app_routes.post('/test-connection')
 def test_connection():
-    data = request.get_json()
+    data = request.get_json() or {}
+    return jsonify({'message': 'Data received successfully', 'received_data': data}), 200
 
-    # Process the data as needed
-    # For now, we'll just echo the data back with a success message
-    response = {
-        'message': 'Data received successfully',
-        'received_data': data
-    }
-
-    return jsonify(response), 200
-
-# ---- Health check route ----
 @app_routes.get("/health")
 def health():
     return {"status": "ok"}, 200

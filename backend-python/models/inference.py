@@ -3,10 +3,12 @@ from pathlib import Path
 import json
 import joblib
 import pandas as pd
+import logging
 
 from models.knapsack import select_under_budget
 from models.pricing import build_candidate_item, render_output, compute_mandatory_steps
 
+log = logging.getLogger(__name__)
 
 def _load_artifacts(artifacts_dir: str, components: list[str]):
     base = Path(artifacts_dir)
@@ -19,7 +21,6 @@ def _load_artifacts(artifacts_dir: str, components: list[str]):
         for comp in components
     }
 
-
 def create_inference(job: dict, artifacts_dir: str) -> dict:
     # 1) Build input frame; inject neutral access if app doesn't provide it
     df = pd.DataFrame([job])
@@ -27,8 +28,19 @@ def create_inference(job: dict, artifacts_dir: str) -> dict:
         df["ease_of_acces"] = 1  # neutral default
 
     # 2) Discover components and load artifacts
-    components = sorted(p.stem.replace("_time","") for p in Path(artifacts_dir).glob("*_time.pkl"))
+    base = Path(artifacts_dir)
+    time_files = list(base.glob("*_time.pkl"))
+    components = sorted(
+        stem[:-5] for stem in (p.stem for p in time_files) if stem.endswith("_time")
+    )
+
     if not components:
+        # Helpful debug so you can see where it's looking and what's there
+        log.error(
+            "No artifacts found. Looked in: %s ; contents: %s",
+            base.resolve(),
+            [p.name for p in base.glob("*")]
+        )
         return render_output(mandatory_first=[], chosen=[], skipped={"_system": "no artifacts found"})
 
     bundles = _load_artifacts(artifacts_dir, components)
