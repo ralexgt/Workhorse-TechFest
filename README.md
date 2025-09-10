@@ -69,11 +69,11 @@ This project addresses:
 
 | Layer            | Technologies                                  |
 | ---------------- | --------------------------------------------- |
-| Frontend         | React, TailwindCSS                            |
+| Frontend         | React                                         |
 | Backend API      | Python, Flask                                 |
 | Machine Learning | XGBoost, Pandas, Scikit-learn                 |
-| Cloud            | Azure App Services, Azure Container Instances |
-| Deployment       | Docker                                        |
+| Cloud            | Azure App Services, Static Web Apps           |
+| Deployment CI/CD | Github Actions                                |
 
 ---
 
