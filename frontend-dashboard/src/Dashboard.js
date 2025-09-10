@@ -31,7 +31,6 @@ function Dashboard({ response }) {
             alt={response?.vehicle?.brand || 'Brand'}
             className="brand-inline"
           />
-
           <div className="vehicle-heading">
             <div className="vehicle-line">
               <span className="veh-title">{response.vehicle.brand}</span>
