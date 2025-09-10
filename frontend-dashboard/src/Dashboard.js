@@ -17,7 +17,12 @@ function Dashboard({ response }) {
       {/* Vehicle strip with inline logo + name */}
       <section className="vehicle-strip">
         <div className="vehicle-main">
-          <img src={`${process.env.PUBLIC_URL}/logos/${response.vehicle.brand}.png`} alt="Brand" className="brand-inline" />
+          <img
+            src={`${process.env.PUBLIC_URL}/logos/${response.vehicle.brand}.png`}
+            alt={response?.vehicle?.brand || 'Brand'}
+            className="brand-inline"
+          />
+
           <div className="vehicle-heading">
             <div className="vehicle-line">
               <span className="veh-title">{response.vehicle.brand}</span>
