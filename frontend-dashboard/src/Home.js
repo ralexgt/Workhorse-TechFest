@@ -6,14 +6,14 @@ const API_BASE = "https://vehicle-dismantling-api.azurewebsites.net";
 
 // Brand data (replace logos with your paths)
 const brands = [
-  { name: 'BMW', logo: '/logos/bmw.png' },
-  { name: 'Audi', logo: '/logos/audi.png' },
-  { name: 'VW', logo: '/logos/vw.png' },
-  { name: 'Skoda', logo: '/logos/skoda.png' },
-  { name: 'Mazda', logo: '/logos/mazda.png' },
-  { name: 'Honda', logo: '/logos/honda.png' },
-  { name: 'Toyota', logo: '/logos/toyota.png' },
-  { name: 'Lexus', logo: '/logos/lexus.png' },
+  { name: 'BMW', logo: '/logos/Bmw.png' },
+  { name: 'Audi', logo: '/logos/Audi.png' },
+  { name: 'VW', logo: '/logos/Vw.png' },
+  { name: 'Skoda', logo: '/logos/Skoda.png' },
+  { name: 'Mazda', logo: '/logos/Mazda.png' },
+  { name: 'Honda', logo: '/logos/Honda.png' },
+  { name: 'Toyota', logo: '/logos/Toyota.png' },
+  { name: 'Lexus', logo: '/logos/Lexus.png' },
 ];
 
 const VEHICLE_TYPES = ['petrol', 'diesel', 'hybrid', 'electric'];
