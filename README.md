@@ -149,5 +149,6 @@ MODEL_PATH=models/xgboost_model.pkl
 ⚡ Developed for **Endava TechFest 2025** by the **GIT&RUN TEAM**
 
 🌐 Check it Out
-The live demo lives on:
+
+The live demo lives on here:
 [DEMO](https://calm-pebble-07af23d03.1.azurestaticapps.net/)
