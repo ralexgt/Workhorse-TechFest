@@ -9,7 +9,7 @@ app_routes = Blueprint('app_routes', __name__)
 
 
 # ./models/artifacts relative to THIS file's folder
-ARTIFACTS_DIR = (Path(__file__).resolve().parent / "models" / "artifacts").as_posix()
+ARTIFACTS_DIR = (Path(__file__).resolve().parent / "models" / "artifacts2").as_posix()
 
 @app_routes.post('/post-data')
 def post_data():
