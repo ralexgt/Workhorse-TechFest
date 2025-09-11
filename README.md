@@ -69,11 +69,11 @@ This project addresses:
 
 | Layer            | Technologies                                  |
 | ---------------- | --------------------------------------------- |
-| Frontend         | React, TailwindCSS                            |
+| Frontend         | React                                         |
 | Backend API      | Python, Flask                                 |
 | Machine Learning | XGBoost, Pandas, Scikit-learn                 |
-| Cloud            | Azure App Services, Azure Container Instances |
-| Deployment       | Docker                                        |
+| Cloud            | Azure App Services, Static Web Apps           |
+| Deployment CI/CD | Github Actions                                |
 
 ---
 
@@ -147,3 +147,8 @@ MODEL_PATH=models/xgboost_model.pkl
 ---
 
 ⚡ Developed for **Endava TechFest 2025** by the **GIT&RUN TEAM**
+
+🌐 Check it Out
+
+The live demo lives on here:
+[DEMO](https://calm-pebble-07af23d03.1.azurestaticapps.net/)
