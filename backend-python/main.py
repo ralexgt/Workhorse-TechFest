@@ -9,6 +9,7 @@ def create_app():
     app.register_blueprint(app_routes, url_prefix='/api')  
     return app
 
+
 # Expose a module-level WSGI app for Gunicorn: "main:app"
 app = create_app()
 
